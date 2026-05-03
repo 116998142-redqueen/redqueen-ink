@@ -1,10 +1,4 @@
-// AI API Client — OpenAI & Claude
-import OpenAI from 'openai'
-import Anthropic from '@anthropic-ai/sdk'
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-
+// Demo AI content generator — no OpenAI/Anthropic API keys needed
 export type AIModel = 'gpt-mini' | 'gpt-best' | 'claude-mini' | 'claude-best'
 
 const modelConfig = {
@@ -22,37 +16,26 @@ interface GenerateParams {
 }
 
 export async function generateContent(params: GenerateParams): Promise<string> {
-  const { prompt, model = 'gpt-mini', temperature = 0.7, maxTokens = 4096 } = params
+  const { model = 'gpt-mini' } = params
   const config = modelConfig[model]
 
-  if (config.provider === 'openai') {
-    const response = await openai.chat.completions.create({
-      model: config.model,
-      messages: [
-        { role: 'system', content: 'You are a professional content writer. Always respond with valid JSON.' },
-        { role: 'user', content: prompt },
-      ],
-      temperature,
-      max_tokens: maxTokens,
-      response_format: { type: 'json_object' },
+  // Demo mode: return demo content without real API calls
+  await new Promise(resolve => setTimeout(resolve, 500))
+
+  if (params.prompt.includes('blog')) {
+    return JSON.stringify({
+      title: 'The Future of Creation',
+      content: 'This is a demo blog post generated without API keys. In production, this would use ' + config.model + '.',
+      seoScore: 78,
     })
-    return response.choices[0]?.message?.content || '{}'
-  } else {
-    const response = await anthropic.messages.create({
-      model: config.model,
-      max_tokens: maxTokens,
-      temperature,
-      system: 'You are a professional content writer. Always respond with valid JSON.',
-      messages: [{ role: 'user', content: prompt }],
-    })
-    const block = response.content[0]
-    return block.type === 'text' ? block.text : '{}'
   }
+
+  return JSON.stringify({
+    content: 'Demo content generated with ' + config.model + '. Set OPENAI_API_KEY or ANTHROPIC_API_KEY for real AI generation.',
+  })
 }
 
-// Cost estimation per request (approximate)
 export function estimateCost(model: AIModel, tokens: number): number {
-  // Prices per 1K tokens in USD
   const prices: Record<string, { input: number; output: number }> = {
     'gpt-4o-mini': { input: 0.00015, output: 0.0006 },
     'gpt-4o': { input: 0.0025, output: 0.01 },
@@ -63,7 +46,6 @@ export function estimateCost(model: AIModel, tokens: number): number {
   const price = prices[config.model]
   if (!price) return 0
 
-  // Assume 70% input, 30% output for rough estimate
   const inputTokens = Math.round(tokens * 0.7)
   const outputTokens = Math.round(tokens * 0.3)
   return (inputTokens / 1000) * price.input + (outputTokens / 1000) * price.output

@@ -1,12 +1,16 @@
-// Stripe setup
-import Stripe from 'stripe'
+// Demo Stripe — no API keys needed
+export const stripe = {
+  // Demo mock — return plan info without actual Stripe calls
+  async charges: {
+    create: async () => ({ id: 'demo_charge', status: 'succeeded' }),
+  },
+  async checkout: {
+    sessions: {
+      create: async () => ({ id: 'demo_session', url: '/create' }),
+    },
+  },
+}
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-02-24.acacia',
-  typescript: true,
-})
-
-// Plan configuration
 export const plans = {
   free: {
     name: 'Free',
@@ -21,7 +25,6 @@ export const plans = {
   creator: {
     name: 'Creator',
     price: 15,
-    priceId: '', // Set your Stripe price ID here
     postsPerMonth: 30,
     features: [
       '30 posts per month',
@@ -34,8 +37,7 @@ export const plans = {
   pro: {
     name: 'Pro',
     price: 39,
-    priceId: '',
-    postsPerMonth: -1, // unlimited
+    postsPerMonth: -1,
     features: [
       'Unlimited posts',
       'One-click publish',
@@ -48,7 +50,6 @@ export const plans = {
   team: {
     name: 'Team',
     price: 79,
-    priceId: '',
     postsPerMonth: -1,
     features: [
       'Everything in Pro',
